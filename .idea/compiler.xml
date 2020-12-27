@@ -11,7 +11,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="w-part-one" target="15" />
+      <module name="w-part-one" target="14" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
