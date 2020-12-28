@@ -8,6 +8,9 @@ import wpartone.model.service.ExerciseServiceModel;
 import wpartone.repository.ExerciseRepository;
 import wpartone.service.ExerciseService;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class ExerciseServiceImpl implements ExerciseService {
 
@@ -24,5 +27,23 @@ public class ExerciseServiceImpl implements ExerciseService {
     public void addExercise(ExerciseServiceModel exerciseServiceModel) {
 
         this.exerciseRepository.saveAndFlush(this.modelMapper.map(exerciseServiceModel, Exercise.class));
+    }
+
+    @Override
+    public List<String> findAllExerciseNames() {
+        return this.exerciseRepository
+                .findAll()
+                .stream()
+                .map(Exercise::getName)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public ExerciseServiceModel findByName(String exercise) {
+        return this.exerciseRepository
+                .findByName(exercise)
+                .map(exer -> this.modelMapper.map(exer, ExerciseServiceModel.class))
+                .orElse(null);
+
     }
 }

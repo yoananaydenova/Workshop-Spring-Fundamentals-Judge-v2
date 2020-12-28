@@ -3,16 +3,15 @@ package wpartone.web;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import wpartone.model.binding.UserAddBindingModel;
 import wpartone.model.binding.UserLoginBindingModel;
 import wpartone.model.service.UserServiceModel;
+import wpartone.model.view.UserProfileViewModel;
 import wpartone.service.UserService;
 
 import javax.servlet.http.HttpSession;
@@ -97,6 +96,21 @@ public class UserController {
         }
 
         return modelAndView;
+    }
+
+    @GetMapping("/logout")
+    public String logout(HttpSession httpSession){
+
+        httpSession.invalidate();
+        return "redirect:/";
+    }
+
+    @GetMapping("/profile")
+    public String profile (Model model, @RequestParam("id")String id){
+
+        model.addAttribute("user", this.modelMapper
+        .map(this.userService.findById(id), UserProfileViewModel.class));
+        return "profile";
     }
 
 }
