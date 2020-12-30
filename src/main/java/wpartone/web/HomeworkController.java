@@ -9,10 +9,13 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import wpartone.model.binding.CommentAddBindingModel;
 import wpartone.model.binding.HomeworkAddBindingModel;
+import wpartone.model.service.CommentServiceModel;
 import wpartone.model.service.ExerciseServiceModel;
 import wpartone.model.service.HomeworkServiceModel;
 import wpartone.model.service.UserServiceModel;
+import wpartone.service.CommentService;
 import wpartone.service.ExerciseService;
 import wpartone.service.HomeworkService;
 
@@ -26,11 +29,13 @@ public class HomeworkController {
 
     private final ExerciseService exerciseService;
     private final HomeworkService homeworkService;
+    private final CommentService commentService;
     private final ModelMapper modelMapper;
 
-    public HomeworkController(ExerciseService exerciseService, HomeworkService homeworkService, ModelMapper modelMapper) {
+    public HomeworkController(ExerciseService exerciseService, HomeworkService homeworkService, CommentService commentService, ModelMapper modelMapper) {
         this.exerciseService = exerciseService;
         this.homeworkService = homeworkService;
+        this.commentService = commentService;
         this.modelMapper = modelMapper;
     }
 
@@ -62,14 +67,54 @@ public class HomeworkController {
             return "redirect:add";
         }
 
+        // TODO That must be in HomeworkService
         HomeworkServiceModel homeworkServiceModel = this.modelMapper
                 .map(homeworkAddBindingModel, HomeworkServiceModel.class);
-
         homeworkServiceModel.setAddedOn(LocalDateTime.now());
         homeworkServiceModel.setExercise(exerciseServiceModel);
         homeworkServiceModel.setAuthor((UserServiceModel) httpSession.getAttribute("user"));
-
         this.homeworkService.add(homeworkServiceModel);
+
         return "redirect:/";
+    }
+
+
+    @GetMapping("/check")
+    public String check(Model model) {
+
+        if(!model.containsAttribute("commentAddBindingModel")){
+            model.addAttribute("commentAddBindingModel", new CommentAddBindingModel());
+        }
+
+        HomeworkServiceModel homeworkServiceModel = this.homeworkService
+                .findOneToCheck();
+
+        model.addAttribute("homework",homeworkServiceModel );
+
+        return "homework-check";
+    }
+
+    @PostMapping("/check")
+    public String checkConfirm(@Valid @ModelAttribute("commentAddBindingModel")CommentAddBindingModel commentAddBindingModel,
+                               BindingResult bindingResult, RedirectAttributes redirectAttributes, HttpSession httpSession){
+
+        // TODO check if homework is to same user, if it is -> change it
+
+        if(bindingResult.hasErrors()){
+            redirectAttributes.addFlashAttribute("commentAddBindingModel", commentAddBindingModel);
+            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.commentAddBindingModel", bindingResult);
+
+            return "redirect:check";
+        }
+
+        // TODO That must be in CommentService
+
+        CommentServiceModel commentServiceModel = this.modelMapper.map(commentAddBindingModel, CommentServiceModel.class);
+        commentServiceModel.setHomework(this.homeworkService.findById(commentAddBindingModel.getHomeworkId()));
+        commentServiceModel.setAuthor((UserServiceModel) httpSession.getAttribute("user"));
+
+        this.commentService.add(commentServiceModel);
+        return "redirect:/";
+
     }
 }

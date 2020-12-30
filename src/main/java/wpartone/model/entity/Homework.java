@@ -1,10 +1,8 @@
 package wpartone.model.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name="homeworks")
@@ -14,6 +12,7 @@ public class Homework extends BaseEntity{
     private String gitAddress;
     private User author;
     private Exercise exercise;
+    private Set<Comment> comments;
 
     public Homework() {
     }
@@ -52,5 +51,14 @@ public class Homework extends BaseEntity{
 
     public void setExercise(Exercise exercise) {
         this.exercise = exercise;
+    }
+
+    @OneToMany(mappedBy = "homework", fetch = FetchType.EAGER)
+    public Set<Comment> getComments() {
+        return comments;
+    }
+
+    public void setComments(Set<Comment> comments) {
+        this.comments = comments;
     }
 }
